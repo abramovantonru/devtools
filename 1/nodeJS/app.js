@@ -1,6 +1,4 @@
-const
-	readlineSync = require('readline-sync'), // для синхронного чтения ввода с клавиатуры
-	EL = require('os').EOL;
+const readlineSync = require('readline-sync'); // модуль для синхронного чтения ввода с клавиатуры
 
 console.reset = function () { // Очищает консоль
 	return process.stdout.write('\033c');
@@ -11,8 +9,8 @@ console.delimiter = function(){ // Рисует разделитель
 };
 
 var
-	n, system, roots,
-	i, j, k;
+	n, system, roots, // основные переменные
+	i, j, k; // вспомогательные переменные
 
 /**
  * Главный поток программы
