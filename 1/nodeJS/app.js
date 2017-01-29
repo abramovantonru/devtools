@@ -35,11 +35,11 @@ function main(){
 	
 	printSystem(); // заполненная система
 	
-	searchRoots(); // поиск корней
-	
-	var answer = getAnswer(); // подготовить ответ
-	showAnswer(answer); // показать ответ
-	
+	if(!searchRoots()) // поиск корней
+		return 0;
+
+	showAnswer(); // показать ответ
+
 	return 1;
 }
 
@@ -53,7 +53,7 @@ function main(){
 function init() {
 	system = new Array(n); // система
 	roots = new Array(n); // корни
-	
+
 	for(i = 0; i < n; i++)
 		system[i] = new Array(n);
 }
@@ -76,7 +76,7 @@ function invite() {
  */
 function getFloat(string){
 	var int = parseFloat(string);
-	if(!isNaN(int))
+	if(!isNaN(int) || int == 0)
 		return int;
 	else
 		return false;
@@ -105,7 +105,7 @@ function getInt(string) {
  */
 function getSystemsElement(i, j){
 	var element = getFloat(readlineSync.question('Введите элемент системы [' + i + ';' + j + '] = '));
-	if(element)
+	if(element !== false)
 		return element;
 	else{
 		console.log('Не верно указан элемент системы! Попробуйте еще раз.');
@@ -119,14 +119,13 @@ function getSystemsElement(i, j){
  * @returns {int} count || {function} self
  */
 function getSystemsCount() {
-	var count = readlineSync.question('Введите число уравнений системы (Примечание: больше одного) = ');
-	if(getInt(count) <= 1){
+	var count = getInt(readlineSync.question('Введите число уравнений системы (Примечание: больше одного) = '));
+	if(count <= 1){
 		console.log('Не верно указано число уравнений! Попробуйте еще раз.');
 		return getSystemsCount();
 	}
-	else {
-		return (count);
-	}
+	else
+		return count;
 }
 
 /**
@@ -137,8 +136,8 @@ function getSystemsCount() {
  * @var {string} line
  */
 function printSystem() {
-	console.delimiter();
 	console.log('Ваша система: ');
+	console.delimiter();
 	for(i = 0; i < system.length; i++){
 		var line = '';
 		for(j = 0; j < system[i].length; j++)
@@ -168,6 +167,20 @@ function swapRows(j) {
 }
 
 /**
+ * Фикс деления
+ * @param a
+ * @param b
+ * @returns exception || {number}
+ */
+function division(a, b){
+	var result = a / b;
+	if((result === Infinity || isNaN(result)) && result != 0)
+		throw 'division by zero';
+	else
+		return result;
+}
+
+/**
  * Поиск корней методом Гаусса
  * @global {array} system
  * @global {array} roots
@@ -175,58 +188,53 @@ function swapRows(j) {
  * @global {int} i
  * @global {int} j
  * @var {int} item
+ * @returns {boolean}
  */
 function searchRoots() {
 	for(var item = 0; item < (n - 1); item++) {
 		if (system[item][item] == 0)
 			swapRows(item);
-		
-		for (j = n; j >= item; j--)
-			system[item][j] /= system[item][item];
+
+		for (j = n; j >= item; j--) {
+			try {
+				system[item][j] = division(system[item][j], system[item][item]);
+			}catch(e){
+				console.log('Ответ: Система не имеет корней!');
+				return false;
+			}
+		}
 		
 		for (i = item + 1; i < n; i++)
 			for (j = n; j >= item; j--)
 				system[i][j] -= system[item][j] * system[i][item];
 	}
-	
-	roots[n - 1] = system[n - 1][n] / system[n - 1][n - 1];
+
+	try{
+		roots[n - 1] = division(system[n - 1][n], system[n - 1][n - 1]);
+	}catch(e){
+		console.log('Ответ: Система не имеет корней!');
+		return false;
+	}
 	for (i = n - 2; i >= 0; i--) {
 		k = 0;
 		for (j = n - 1; j > i; j--)
-			k = (system[i][j] * roots[j]) + k;
+			k = system[i][j] * roots[j] + k;
 		roots[i] = system[i][n] - k;
 	}
-}
-
-/**
- * Получает ответ, удаляя NaN значения
- * @global {array} roots
- * @global {int} i
- * @returns {array} answer
- */
-function getAnswer() {
-	var answer = [];
-	for(i = 0; i < roots.length; i++)
-		if(!isNaN(roots[i]))
-			answer.push(roots[i]);
-	return answer;
+	return true;
 }
 
 /**
  * Показывает ответ по массиву
+ * @global {array} roots
  * @global {int} i
- * @param {array} answer
  */
-function showAnswer(answer) {
-	if(answer.length){
-		console.log('Ответ:');
-		console.delimiter();
-		for(i = 0; i < answer.length; i++)
-			console.log('x' + (i + 1) + ' = ' + answer[i]);
-		console.delimiter();
-	}else{
-		console.log('Ответ: Система не имеет корней!');
-	}
+function showAnswer() {
+	console.log('Ответ:');
+	console.delimiter();
+	for(i = 0; i < roots.length; i++)
+		console.log('x' + (i + 1) + ' = ' + parseFloat(roots[i].toFixed(2)));
+	console.delimiter();
 }
 
 main();
