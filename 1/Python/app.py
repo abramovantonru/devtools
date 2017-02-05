@@ -1,3 +1,4 @@
+#TODO description for code
 def console_reset():
 	print(chr(27) + "[2J")
 	return
