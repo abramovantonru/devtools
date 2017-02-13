@@ -1,38 +1,22 @@
 const readlineSync = require('readline-sync'); // модуль для синхронного чтения ввода с клавиатуры
 
-console.reset = function () { // Очищает консоль
-	return process.stdout.write('\033c');
-};
-
-console.delimiter = function(){ // Рисует разделитель
-	console.log('---------------------');
-};
-
 var
 	n, system, roots, // основные переменные
 	i, j, k; // вспомогательные переменные
 
 /**
  * Главный поток программы
- * @global {array} system
- * @global {array} roots
- * @global {int} n
- * @global {int} i
- * @global {int} j
- * @var {array} answer
+ * @var {int} n
  * @return {int} code
  */
 function main(){
 	invite(); // приглашение
 	
 	n = getSystemsCount(); // количество систем уравнений
+
+	initSystem(); // заполнение массивов для системы
 	
-	init(); // заполнение массивов для системы
-	
-	for(i = 0; i < n; i++)
-		for(j = 0; j <= n; j++)
-			system[i][j] = getSystemsElement(i, j); // заполнение системы пользователем
-	
+	inputSystem(); // ввод системы
 	printSystem(); // заполненная система
 	
 	if(!searchRoots()) // поиск корней
@@ -50,7 +34,7 @@ function main(){
  * @global {int} n
  * @global {int} i
  */
-function init() {
+function initSystem() {
 	system = new Array(n); // система
 	roots = new Array(n); // корни
 
@@ -59,20 +43,33 @@ function init() {
 }
 
 /**
+ * Очищает консоль
+ */
+console.reset = function () {
+	return process.stdout.write('\033c');
+};
+
+/**
+ * Рисует разделитель
+ */
+console.delimiter = function(){
+	console.log('---------------------');
+};
+
+/**
  * Приглашение
  * Очищает экран, выводит приглашение
  */
 function invite() {
 	console.reset();
 	console.log('Программа для решения систем уравнений методом Гаусса.');
-	console.log('Для выхода используйте комбинацию клавиш "Ctrl+C".');
 }
 
 /**
  * Обработка введенной строки
  * Число ? вернуть число : вернуть false
  * @param string
- * @return {float} number || {boolean} false
+ * @return float or boolean
  */
 function getFloat(string){
 	var int = parseFloat(string);
@@ -86,7 +83,7 @@ function getFloat(string){
  * Обработка введенной строки
  * Натуральное число ? вернуть число : вернуть false
  * @param string
- * @return {int} number || {boolean} false
+ * @return integer or boolean
  */
 function getInt(string) {
 	var int = parseInt(string);
@@ -97,11 +94,25 @@ function getInt(string) {
 }
 
 /**
+ * Ввод системы
+ * @global {array} system
+ * @global {int} n
+ * @global {int} i
+ * @global {int} j
+ */
+function inputSystem() {
+	console.log('Заполните систему числами для нахождения корней.');
+	for(i = 0; i < n; i++)
+		for(j = 0; j <= n; j++)
+			system[i][j] = getSystemsElement(i, j); // заполнение системы пользователем
+}
+
+/**
  * Получение элемента системы с индексами [i,j]
- * Число ? венуть число : вернуть ошибку и еще один запрос ввода элемента системы.
+ * Число ? вернуть число : вернуть ошибку и еще один запрос ввода элемента системы.
  * @param i
  * @param j
- * @returns {float} element || {function} self
+ * @returns float or self
  */
 function getSystemsElement(i, j){
 	var element = getFloat(readlineSync.question('Введите элемент системы [' + i + ';' + j + '] = '));
@@ -116,7 +127,7 @@ function getSystemsElement(i, j){
 /**
  * Получение количества уравнений системы
  * Натуральное число ? венуть число : вернуть ошибку и еще один запрос ввода количества уравнений системы.
- * @returns {int} count || {function} self
+ * @returns integer or self
  */
 function getSystemsCount() {
 	var count = getInt(readlineSync.question('Введите число уравнений системы (Примечание: больше одного) = '));
@@ -167,17 +178,16 @@ function swapRows(j) {
 }
 
 /**
- * Фикс деления
+ * Безопасное деление
  * @param a
  * @param b
- * @returns exception || {number}
+ * @returns boolean || number
  */
 function division(a, b){
-	var result = a / b;
-	if((result === Infinity || isNaN(result)) && result != 0)
-		throw 'division by zero';
+	if(b == 0)
+		return false;
 	else
-		return result;
+		return a / b;
 }
 
 /**
@@ -187,20 +197,23 @@ function division(a, b){
  * @global {int} n
  * @global {int} i
  * @global {int} j
+ * @global {float} k
  * @var {int} item
- * @returns {boolean}
+ * @returns boolean
  */
 function searchRoots() {
+	var result = null;
 	for(var item = 0; item < (n - 1); item++) {
 		if (system[item][item] == 0)
 			swapRows(item);
 
 		for (j = n; j >= item; j--) {
-			try {
-				system[item][j] = division(system[item][j], system[item][item]);
-			}catch(e){
+			result = division(system[item][j], system[item][item]);
+			if(result === false){
 				console.log('Ответ: Система не имеет корней!');
 				return false;
+			}else{
+				system[item][j] = result;
 			}
 		}
 		
@@ -209,12 +222,14 @@ function searchRoots() {
 				system[i][j] -= system[item][j] * system[i][item];
 	}
 
-	try{
-		roots[n - 1] = division(system[n - 1][n], system[n - 1][n - 1]);
-	}catch(e){
+	result = division(system[n - 1][n], system[n - 1][n - 1]);
+	if(result === false){
 		console.log('Ответ: Система не имеет корней!');
 		return false;
+	}else{
+		roots[n - 1] = result;
 	}
+
 	for (i = n - 2; i >= 0; i--) {
 		k = 0;
 		for (j = n - 1; j > i; j--)
