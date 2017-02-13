@@ -1,50 +1,56 @@
 import random
 
-n = 0
+# вспомогательные переменные
 i = 0
 j = 0
 
+# переменные для псевдослучайных чисел
 random_type = False  # false = int / true = float
 random_min = -100
 random_max = 100
 
+# для работы с постоянными
 consts = []
 set_consts = False
 
+# для работы с переменными
 variables = []
 set_variables = False
 
+# основные переменные
+n = 0
 results = []
 system = []
 
 
 def main():
-	global n, i, j, variables, set_variables, consts, set_consts
+	global n, i, j, variables, set_variables, consts, set_consts, random_type
 
-	invite()
+	invite()  # приглашение
 
-	n = get_system_count()
+	n = get_system_count()   # количество неизвестных величин (уравнений)
 
-	init()
+	init()  # заполнение массивов для работы
 
-	if not q_random():
-		if q_consts():
+	if not q_random():  # не использовать только случайное уравнение
+		if q_consts():  # задавать константы
 			set_consts = True
 			for i in range(n):  # индекс уравнения
 				for j in range(n):  # индекс константы
 					consts[i][j] = get_const_element(i, j)
-		if q_vars():
+		if q_vars():  # задавать переменные
 			set_variables = True
 			for i in range(n):  # индекс переменной
 				variables[i] = get_var_element(i)
-		gen()
+		gen()  # обычная генерация
 	else:
-		if q_random_range():
+		if q_random_range():  # выбор диапазона для случайных чисел
 			get_range()
-		gen_random()
+		random_type = get_random_type()  # тип чисел при получении случайных
+		gen_random()  # генерация случайного уравнения
 
-	print_system()
-	print_roots()
+	print_system()  # система
+	print_roots()  # корни (решение)
 
 	return
 
@@ -124,7 +130,7 @@ def get_system_count():
 
 
 def q_vars():
-	answer = input('Задать переменные? (Y/N) = ')
+	answer = str(input('Задать переменные? (Y/N) = '))
 	if answer == 'Y' or answer == 'y':
 		return True
 	elif answer == 'N' or answer == 'n':
@@ -200,8 +206,26 @@ def q_random():
 
 
 def gen_random():
-	global random_type
-	random_type = get_random_type()
+	global random_type, i, variables, random_min, random_max, consts, results
+	for i in range(n):
+		if random_type:
+			variables[i] = int(random.uniform(random_min, random_max) * 100) / 100
+		else:
+			variables[i] = random.randint(int(random_min), int(random_max))
+
+	for i in range(n):
+		for j in range(n):
+			if random_type:
+				consts[i][j] = int(random.uniform(random_min, random_max) * 100) / 100
+			else:
+				consts[i][j] = random.randint(int(random_min), int(random_max))
+
+	for i in range(n):
+		result = 0.00
+		for j in range(n):
+			result += variables[j] * consts[i][j]
+		results[i] = result
+
 	return
 
 
@@ -214,7 +238,7 @@ def gen():
 			get_range()
 		for i in range(n):
 			if random_type:
-				variables[i] = random.uniform(random_min, random_max)
+				variables[i] = int(random.uniform(random_min, random_max) * 100) / 100
 			else:
 				variables[i] = random.randint(int(random_min), int(random_max))
 
@@ -226,7 +250,7 @@ def gen():
 		for i in range(n):
 			for j in range(n):
 				if random_type:
-					consts[i][j] = random.uniform(random_min, random_max)
+					consts[i][j] = int(random.uniform(random_min, random_max) * 100) / 100
 				else:
 					consts[i][j] = random.randint(int(random_min), int(random_max))
 
