@@ -1,11 +1,20 @@
-
+0/Python/.idea/
 
 1/nodeJS/node_modules/
 1/nodeJS/.idea/
 1/nodeJS/tmp.js
 
 1/Python/.idea/
-0/Python/.idea/
 
 1/GoLang/.idea/
 1/GoLang/bin/
+
+
+
+2/C#/bin/
+2/C#/.vs/
+2/C#/obj/
+2/C#/Properties/
+2/C#/packages/
+
+2/Python/.idea/
